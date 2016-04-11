@@ -58,7 +58,7 @@ public class BungeeCordLauncher
                 
                 try
                 {
-                    URL api = new URL( "https://api.github.com/repos/HexagonMC/BungeeCord/releases/latest" );
+                    URL api = new URL( "https://api.github.com/repos/ghacproductions/BungeeCord-IPForward/releases/latest" );
                     URLConnection con = api.openConnection();
                     // 15 second timeout at various stages
                     con.setConnectTimeout( 15000 );
@@ -76,7 +76,7 @@ public class BungeeCordLauncher
                         if ( latestVersion > currentVersion )
                         {
                             System.err.println("*** Warning, this build is outdated ***");
-                            System.err.println("*** Please download a new build from https://github.com/HexagonMC/BungeeCord/releases ***");
+                            System.err.println("*** Please download a new build from https://github.com/ghacproductions/BungeeCord-IPForward/releases ***");
                             System.err.println("*** You will get NO support regarding this build ***");
                             System.err.println("*** Server will start in 10 seconds ***");
                             Thread.sleep(TimeUnit.SECONDS.toMillis(10));

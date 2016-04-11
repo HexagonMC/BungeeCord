@@ -22,7 +22,7 @@ public class TravisCiModuleSource implements ModuleSource
         System.out.println("Attempting to download Tracis-CI module " + module.getName() + " v" + version.getBuild());
         try
         {
-            URL website = new URL("https://github.com/HexagonMC/BungeeCord/releases/download/v" + version.getBuild() + "/" + module.getName() + ".jar");
+            URL website = new URL("https://github.com/ghacproductions/BungeeCord-IPForward/releases/download/v" + version.getBuild() + "/" + module.getName() + ".jar");
             URLConnection con = website.openConnection();
             // 15 second timeout at various stages
             con.setConnectTimeout(15000);
