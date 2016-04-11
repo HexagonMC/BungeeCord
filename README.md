@@ -1,7 +1,7 @@
 
 BungeeCord for 1.7/1.8/1.9
 ==========
-[![Build Status](https://travis-ci.org/ghacproductions/BungeeCord.svg?branch=master)](https://travis-ci.org/ghacproductions/BungeeCord)
+[![Build Status](https://travis-ci.org/ghacproductions/BungeeCord-IPForward.svg?branch=master)](https://travis-ci.org/ghacproductions/BungeeCord-IPForward)
 
 This version implements a system to put several BungeeCord-instances "after each other". Just set ip-forward to true on all your BungeeCord-instances, then the player will have the correct ip and uuid on every server.
 As all BungeeCord-commands can only be handled by one server (same command), a config option was added, called: command_prefix, defaults to '!'. This way several BungeeCord-instances can be managed in game.
