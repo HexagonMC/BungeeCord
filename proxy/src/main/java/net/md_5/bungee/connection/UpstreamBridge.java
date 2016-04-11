@@ -22,7 +22,6 @@ import net.md_5.bungee.protocol.packet.ClientSettings;
 import net.md_5.bungee.protocol.packet.PluginMessage;
 import java.util.ArrayList;
 import java.util.List;
-import net.md_5.bungee.forge.ForgeConstants;
 import net.md_5.bungee.protocol.packet.TabCompleteResponse;
 
 public class UpstreamBridge extends PacketHandler
@@ -163,14 +162,6 @@ public class UpstreamBridge extends PacketHandler
         // Hack around Forge race conditions
         if ( pluginMessage.getTag().equals( "FML" ) && pluginMessage.getStream().readUnsignedByte() == 1 )
         {
-            throw CancelSendSignal.INSTANCE;
-        }
-
-        // We handle forge handshake messages if forge support is enabled.
-        if ( pluginMessage.getTag().equals( ForgeConstants.FML_HANDSHAKE_TAG ) )
-        {
-            // Let our forge client handler deal with this packet.
-            con.getForgeClientHandler().handle( pluginMessage );
             throw CancelSendSignal.INSTANCE;
         }
 

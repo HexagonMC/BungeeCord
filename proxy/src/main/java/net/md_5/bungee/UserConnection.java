@@ -41,9 +41,6 @@ import net.md_5.bungee.api.score.Scoreboard;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.md_5.bungee.connection.InitialHandler;
 import net.md_5.bungee.entitymap.EntityMap;
-import net.md_5.bungee.forge.ForgeClientHandler;
-import net.md_5.bungee.forge.ForgeConstants;
-import net.md_5.bungee.forge.ForgeServerHandler;
 import net.md_5.bungee.netty.ChannelWrapper;
 import net.md_5.bungee.netty.HandlerBoss;
 import net.md_5.bungee.netty.PipelineUtils;
@@ -134,13 +131,6 @@ public final class UserConnection implements ProxiedPlayer
     private EntityMap entityRewrite;
     private Locale locale;
     /*========================================================================*/
-    @Getter
-    @Setter
-    private ForgeClientHandler forgeClientHandler;
-    @Getter
-    @Setter
-    private ForgeServerHandler forgeServerHandler;
-    /*========================================================================*/
     private final Unsafe unsafe = new Unsafe()
     {
         @Override
@@ -178,11 +168,6 @@ public final class UserConnection implements ProxiedPlayer
         {
             addGroups( s );
         }
-
-        forgeClientHandler = new ForgeClientHandler( this );
-
-        // Set whether the connection has a 1.8 FML marker in the handshake.
-        forgeClientHandler.setFmlTokenInHandshake( this.getPendingConnection().getExtraDataInHandshake().contains( ForgeConstants.FML_HANDSHAKE_TOKEN ) );
     }
 
     public void sendPacket(PacketWrapper packet)
@@ -452,7 +437,7 @@ public final class UserConnection implements ProxiedPlayer
     @Override
     public void sendData(String channel, byte[] data)
     {
-        unsafe().sendPacket( new PluginMessage( channel, data, forgeClientHandler.isForgeUser() ) );
+        unsafe().sendPacket( new PluginMessage( channel, data, false ) );
     }
 
     @Override
@@ -556,20 +541,13 @@ public final class UserConnection implements ProxiedPlayer
     @Override
     public boolean isForgeUser()
     {
-        return forgeClientHandler.isForgeUser();
+        return false;
     }
 
     @Override
     public Map<String, String> getModList()
     {
-        if ( forgeClientHandler.getClientModList() == null )
-        {
-            // Return an empty map, rather than a null, if the client hasn't got any mods,
-            // or is yet to complete a handshake.
-            return ImmutableMap.of();
-        }
-
-        return ImmutableMap.copyOf( forgeClientHandler.getClientModList() );
+        return ImmutableMap.of();
     }
 
     private static final String EMPTY_TEXT = ComponentSerializer.toString( new TextComponent( "" ) );

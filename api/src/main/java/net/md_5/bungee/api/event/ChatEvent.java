@@ -3,6 +3,7 @@ package net.md_5.bungee.api.event;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.plugin.Cancellable;
 
@@ -37,6 +38,6 @@ public class ChatEvent extends TargetedEvent implements Cancellable
      */
     public boolean isCommand()
     {
-        return message.length() > 0 && message.charAt( 0 ) == '/';
+        return message.length() > 0 && message.charAt( 0 ) == ProxyServer.getInstance().getCommandPrefix();
     }
 }

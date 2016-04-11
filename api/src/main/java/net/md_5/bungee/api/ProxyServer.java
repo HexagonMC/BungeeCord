@@ -303,5 +303,11 @@ public abstract class ProxyServer
      * @see Title
      */
     public abstract Title createTitle();
-
+    
+    /**
+     * Returns the prefix char for indicating a command
+     * 
+     * @return The command prefix
+     */
+    public abstract char getCommandPrefix();
 }

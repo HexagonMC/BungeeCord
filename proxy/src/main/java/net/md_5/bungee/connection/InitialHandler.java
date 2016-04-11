@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.crypto.SecretKey;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.gson.Gson;
 import java.util.concurrent.TimeUnit;
@@ -63,7 +65,7 @@ import net.md_5.bungee.util.BoundedArrayList;
 @RequiredArgsConstructor
 public class InitialHandler extends PacketHandler implements PendingConnection
 {
-
+	private static final Pattern IPADDRESS_PATTERN = Pattern.compile("(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])");
     private final ProxyServer bungee;
     private ChannelWrapper ch;
     @Getter
@@ -87,11 +89,17 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     @Getter
     private boolean onlineMode = BungeeCord.getInstance().config.isOnlineMode();
     @Getter
+    private InetSocketAddress spoofedHost;
+    @Getter
     private InetSocketAddress virtualHost;
+    @Getter
+    private UUID spoofedId;
     @Getter
     private UUID uniqueId;
     @Getter
     private UUID offlineId;
+    @Getter
+    private LoginResult spoofedProfile;
     @Getter
     private LoginResult loginProfile;
     @Getter
@@ -273,7 +281,51 @@ public class InitialHandler extends PacketHandler implements PendingConnection
         }
 
         this.virtualHost = InetSocketAddress.createUnresolved( handshake.getHost(), handshake.getPort() );
-        bungee.getLogger().log( Level.INFO, "{0} has connected", this );
+        Matcher matcher = IPADDRESS_PATTERN.matcher(extraDataInHandshake);
+        if (matcher.find())
+        {
+            String data;
+            int start = matcher.start();
+            if (start != 0)
+            {
+                data = extraDataInHandshake.substring(start, extraDataInHandshake.length());
+                extraDataInHandshake = extraDataInHandshake.substring(0, start - 1);
+            }
+            else
+            {
+                data = extraDataInHandshake;
+                extraDataInHandshake = "";
+            }
+            String[] split = data.split( "\0" );
+            int i = 0;
+            spoofedHost = InetSocketAddress.createUnresolved( split[i++], handshake.getPort() );
+            String id = split[i];
+            spoofedId = java.util.UUID.fromString(split[i++].replaceFirst( "([0-9a-fA-F]{8})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]+)", "$1-$2-$3-$4-$5" ));
+            if (split.length > i)
+            {
+                if (split[i].startsWith("{") || split[i].startsWith("["))
+                {
+                    LoginResult.Property[] properties = BungeeCord.getInstance().gson.fromJson( split[i], LoginResult.Property[].class );
+                    spoofedProfile = new LoginResult(id, properties);
+                }
+                else
+                    extraDataInHandshake += "\0" + split[i];
+            }
+            while  (i++ > split.length)
+                extraDataInHandshake += "\0" + split[i];
+        }
+        if (spoofedId != null)
+            uniqueId = spoofedId;
+        if (spoofedHost != null)
+        {
+            this.virtualHost = spoofedHost;
+            bungee.getLogger().log( Level.INFO, "{0} has connected via BungeeCord", this );
+        }
+        else
+        {
+            this.virtualHost = InetSocketAddress.createUnresolved( handshake.getHost(), handshake.getPort() );
+            bungee.getLogger().log( Level.INFO, "{0} has connected", this );
+        }
 
         bungee.getPluginManager().callEvent( new PlayerHandshakeEvent( InitialHandler.this, handshake ) );
 
@@ -451,6 +503,11 @@ public class InitialHandler extends PacketHandler implements PendingConnection
         if ( uniqueId == null )
         {
             uniqueId = offlineId;
+        }
+        
+        if (spoofedProfile != null)
+        {
+            loginProfile = spoofedProfile;
         }
 
         Callback<LoginEvent> complete = new Callback<LoginEvent>()
