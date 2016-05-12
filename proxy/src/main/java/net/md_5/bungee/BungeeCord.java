@@ -130,6 +130,12 @@ public class BungeeCord extends ProxyServer
      */
     @Getter
     public final PluginManager pluginManager = new PluginManager( this );
+    /**
+     * String displayed instead of the typical version string (will send an incompatible version to the client to show it)
+     */
+    @Getter
+    @Setter
+    private String versionDisplay;
     @Getter
     @Setter
     private ReconnectHandler reconnectHandler;
