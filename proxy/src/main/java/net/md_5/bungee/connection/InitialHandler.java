@@ -67,7 +67,6 @@ public class InitialHandler extends PacketHandler implements PendingConnection
 	private static final Pattern IPADDRESS_PATTERN = Pattern.compile("(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])");
     private final BungeeCord bungee;
 
-    private final BungeeCord bungee;
     private ChannelWrapper ch;
     @Getter
     private final ListenerInfo listener;
