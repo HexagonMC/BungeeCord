@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import net.md_5.bungee.Util;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -16,6 +17,7 @@ import net.md_5.bungee.api.chat.TextComponent;
  * Minecraft client server list, or hitting it with a packet 0xFE.
  */
 @Data
+@ToString(exclude = "favicon")
 @NoArgsConstructor
 @AllArgsConstructor
 public class ServerPing
@@ -104,13 +106,13 @@ public class ServerPing
     @Deprecated
     public ServerPing(Protocol version, Players players, String description, String favicon)
     {
-        this( version, players, new TextComponent( TextComponent.fromLegacyText(description) ), favicon == null ? null : Favicon.create( favicon ) );
+        this( version, players, new TextComponent( TextComponent.fromLegacyText( description ) ), favicon == null ? null : Favicon.create( favicon ) );
     }
 
     @Deprecated
     public ServerPing(Protocol version, Players players, String description, Favicon favicon)
     {
-        this( version, players, new TextComponent( TextComponent.fromLegacyText(description) ), favicon );
+        this( version, players, new TextComponent( TextComponent.fromLegacyText( description ) ), favicon );
     }
 
     @Deprecated
@@ -136,20 +138,24 @@ public class ServerPing
     }
 
     @Deprecated
-    public void setDescription(String description) {
+    public void setDescription(String description)
+    {
         this.description = new TextComponent( TextComponent.fromLegacyText( description ) );
     }
 
     @Deprecated
-    public String getDescription() {
+    public String getDescription()
+    {
         return BaseComponent.toLegacyText( description );
     }
 
-    public void setDescriptionComponent(BaseComponent description) {
+    public void setDescriptionComponent(BaseComponent description)
+    {
         this.description = description;
     }
 
-    public BaseComponent getDescriptionComponent() {
+    public BaseComponent getDescriptionComponent()
+    {
         return description;
     }
 }

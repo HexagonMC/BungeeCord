@@ -10,12 +10,12 @@ import net.md_5.bungee.protocol.ProtocolConstants;
 
 import java.util.UUID;
 
-class EntityMap_1_9 extends EntityMap
+class EntityMap_1_10 extends EntityMap
 {
 
-    static final EntityMap_1_9 INSTANCE = new EntityMap_1_9();
+    static final EntityMap_1_10 INSTANCE = new EntityMap_1_10();
 
-    EntityMap_1_9()
+    EntityMap_1_10()
     {
         addRewrite( 0x00, ProtocolConstants.Direction.TO_CLIENT, true ); // Spawn Object : PacketPlayOutSpawnEntity
         addRewrite( 0x01, ProtocolConstants.Direction.TO_CLIENT, true ); // Spawn Experience Orb : PacketPlayOutSpawnEntityExperienceOrb
@@ -38,10 +38,10 @@ class EntityMap_1_9 extends EntityMap
         addRewrite( 0x3B, ProtocolConstants.Direction.TO_CLIENT, true ); // Entity Velocity : PacketPlayOutEntityVelocity
         addRewrite( 0x3C, ProtocolConstants.Direction.TO_CLIENT, true ); // Entity Equipment : PacketPlayOutEntityEquipment
         addRewrite( 0x40, ProtocolConstants.Direction.TO_CLIENT, true ); // Attach Entity : PacketPlayOutMount
-        addRewrite( 0x49, ProtocolConstants.Direction.TO_CLIENT, true ); // Collect Item : PacketPlayOutCollect
-        addRewrite( 0x4A, ProtocolConstants.Direction.TO_CLIENT, true ); // Entity Teleport : PacketPlayOutEntityTeleport
-        addRewrite( 0x4B, ProtocolConstants.Direction.TO_CLIENT, true ); // Entity Properties : PacketPlayOutUpdateAttributes
-        addRewrite( 0x4C, ProtocolConstants.Direction.TO_CLIENT, true ); // Entity Effect : PacketPlayOutEntityEffect
+        addRewrite( 0x48, ProtocolConstants.Direction.TO_CLIENT, true ); // Collect Item : PacketPlayOutCollect
+        addRewrite( 0x49, ProtocolConstants.Direction.TO_CLIENT, true ); // Entity Teleport : PacketPlayOutEntityTeleport
+        addRewrite( 0x4A, ProtocolConstants.Direction.TO_CLIENT, true ); // Entity Properties : PacketPlayOutUpdateAttributes
+        addRewrite( 0x4B, ProtocolConstants.Direction.TO_CLIENT, true ); // Entity Effect : PacketPlayOutEntityEffect
 
         addRewrite( 0x0A, ProtocolConstants.Direction.TO_SERVER, true ); // Use Entity : PacketPlayInUseEntity
         addRewrite( 0x14, ProtocolConstants.Direction.TO_SERVER, true ); // Entity Action : PacketPlayInEntityAction
@@ -63,7 +63,7 @@ class EntityMap_1_9 extends EntityMap
             case 0x3A /* Attach Entity : PacketPlayOutAttachEntity */:
                 rewriteInt( packet, oldId, newId, readerIndex + packetIdLength + 4 );
                 break;
-            case 0x49 /* Collect Item : PacketPlayOutCollect */:
+            case 0x48 /* Collect Item : PacketPlayOutCollect */:
                 DefinedPacket.readVarInt( packet );
                 rewriteVarInt( packet, oldId, newId, packet.readerIndex() );
                 break;

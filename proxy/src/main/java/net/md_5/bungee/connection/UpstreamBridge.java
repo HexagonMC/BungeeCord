@@ -83,11 +83,17 @@ public class UpstreamBridge extends PacketHandler
     }
 
     @Override
+    public boolean shouldHandle(PacketWrapper packet) throws Exception
+    {
+        return bungee.getConfig().getAlwaysHandlePackets() || con.getServer() != null || packet.packet instanceof PluginMessage;
+    }
+
+    @Override
     public void handle(PacketWrapper packet) throws Exception
     {
-        con.getEntityRewrite().rewriteServerbound( packet.buf, con.getClientEntityId(), con.getServerEntityId() );
         if ( con.getServer() != null )
         {
+            con.getEntityRewrite().rewriteServerbound( packet.buf, con.getClientEntityId(), con.getServerEntityId() );
             con.getServer().getCh().write( packet );
         }
     }
@@ -179,9 +185,9 @@ public class UpstreamBridge extends PacketHandler
         }
 
         // TODO: Unregister as well?
-        if ( pluginMessage.getTag().equals( "REGISTER" ) )
+        if ( PluginMessage.SHOULD_RELAY.apply( pluginMessage ) )
         {
-            con.getPendingConnection().getRegisterMessages().add( pluginMessage );
+            con.getPendingConnection().getRelayMessages().add( pluginMessage );
         }
     }
 

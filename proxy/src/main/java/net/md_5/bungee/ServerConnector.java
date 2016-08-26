@@ -142,11 +142,15 @@ public class ServerConnector extends PacketHandler
                 ch.write(packetQueue.poll());
         }
         
-        for (PluginMessage message : user.getPendingConnection().getRegisterMessages())
-            ch.write(message);
+        for ( PluginMessage message : user.getPendingConnection().getRelayMessages() )
+        {
+            ch.write( message );
+        }
         
-        if (user.getSettings() != null)
-            ch.write(user.getSettings());
+        if ( user.getSettings() != null )
+        {
+            ch.write( user.getSettings() );
+        }
         
         if (user.getServer() == null)
         {
@@ -155,10 +159,22 @@ public class ServerConnector extends PacketHandler
             user.setServerEntityId(login.getEntityId());
             
             // Set tab list size, this sucks balls, TODO: what shall we do about packet mutability
-            Login modLogin = new Login(login.getEntityId(), login.getGameMode(), (byte) login.getDimension(), login.getDifficulty(), (byte) user.getPendingConnection().getListener().getTabListSize(), login.getLevelType(), login.isReducedDebugInfo());
+            // Forge allows dimension ID's > 127
             
-            user.unsafe().sendPacket(modLogin);
-            
+            Login modLogin;
+            if ( handshakeHandler != null && handshakeHandler.isServerForge() )
+            {
+                modLogin = new Login( login.getEntityId(), login.getGameMode(), login.getDimension(), login.getDifficulty(),
+                        (byte) user.getPendingConnection().getListener().getTabListSize(), login.getLevelType(), login.isReducedDebugInfo() );
+            }
+            else
+            {
+                modLogin = new Login( login.getEntityId(), login.getGameMode(), (byte) login.getDimension(), login.getDifficulty(),
+                        (byte) user.getPendingConnection().getListener().getTabListSize(), login.getLevelType(), login.isReducedDebugInfo() );
+            }
+
+            user.unsafe().sendPacket( modLogin );
+
             if (user.getPendingConnection().getVersion() < ProtocolConstants.MINECRAFT_1_8)
             {
                 MinecraftOutput out = new MinecraftOutput();

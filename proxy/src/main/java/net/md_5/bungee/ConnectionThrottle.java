@@ -1,28 +1,29 @@
 package net.md_5.bungee;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
+import java.util.concurrent.TimeUnit;
 
-@RequiredArgsConstructor
 public class ConnectionThrottle
 {
 
-    private final Map<InetAddress, Long> throttle = new HashMap<>();
-    private final int throttleTime;
+    private final Cache<InetAddress, Boolean> throttle;
 
-    public void unthrottle(InetAddress address)
+    public ConnectionThrottle(int throttleTime)
     {
-        throttle.remove( address );
+        this.throttle = CacheBuilder.newBuilder()
+                .concurrencyLevel( Runtime.getRuntime().availableProcessors() )
+                .initialCapacity( 100 )
+                .expireAfterWrite( throttleTime, TimeUnit.MILLISECONDS )
+                .build();
     }
 
     public boolean throttle(InetAddress address)
     {
-        Long value = throttle.get( address );
-        long currentTime = System.currentTimeMillis();
+        boolean isThrottled = throttle.getIfPresent( address ) != null;
+        throttle.put( address, true );
 
-        throttle.put( address, currentTime );
-        return value != null && currentTime - value < throttleTime;
+        return isThrottled;
     }
 }
