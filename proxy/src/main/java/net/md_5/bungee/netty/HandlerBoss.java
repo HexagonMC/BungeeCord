@@ -13,6 +13,7 @@ import net.md_5.bungee.connection.CancelSendSignal;
 import net.md_5.bungee.connection.InitialHandler;
 import net.md_5.bungee.connection.PingHandler;
 import net.md_5.bungee.protocol.BadPacketException;
+import net.md_5.bungee.protocol.OverflowPacketException;
 
 /**
  * This class is a primitive wrapper for {@link PacketHandler} instances tied to
@@ -104,13 +105,17 @@ public class HandlerBoss extends ChannelInboundHandlerAdapter
                 {
                     handler, cause.getCause().getMessage()
                 } );
-
-                cause.printStackTrace();
-            } else if ( cause instanceof IOException )
+            } else if ( cause instanceof DecoderException && cause.getCause() instanceof OverflowPacketException )
             {
-                ProxyServer.getInstance().getLogger().log( Level.WARNING, "{0} - IOException: {1}", new Object[]
+                ProxyServer.getInstance().getLogger().log( Level.WARNING, "{0} - overflow in packet detected! {1}", new Object[]
                 {
-                    handler, cause.getMessage()
+                    handler, cause.getCause().getMessage()
+                } );
+            } else if ( cause instanceof IOException || ( cause instanceof IllegalStateException && handler instanceof InitialHandler ) )
+            {
+                ProxyServer.getInstance().getLogger().log( Level.WARNING, "{0} - {1}: {2}", new Object[]
+                {
+                    handler, cause.getClass().getSimpleName(), cause.getMessage()
                 } );
             } else
             {

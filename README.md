@@ -1,5 +1,5 @@
 
-BungeeCord for 1.7/1.8/1.9
+BungeeCord for 1.7/1.8/1.9/1.10
 ==========
 [![Build Status](https://travis-ci.org/ghacproductions/BungeeCord-IPForward.svg?branch=master)](https://travis-ci.org/ghacproductions/BungeeCord-IPForward)
 

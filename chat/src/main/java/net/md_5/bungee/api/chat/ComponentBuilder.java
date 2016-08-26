@@ -242,19 +242,22 @@ public class ComponentBuilder
      */
     public BaseComponent[] create()
     {
-        parts.add( current );
-        return parts.toArray( new BaseComponent[ parts.size() ] );
+        BaseComponent[] result = parts.toArray( new BaseComponent[ parts.size() + 1 ] );
+        result[parts.size()] = current;
+        return result;
     }
 
     public static enum FormatRetention
     {
 
         /**
-         * Specify that we do not want to retain anything from the previous component.
+         * Specify that we do not want to retain anything from the previous
+         * component.
          */
         NONE,
         /**
-         * Specify that we want the formatting retained from the previous component.
+         * Specify that we want the formatting retained from the previous
+         * component.
          */
         FORMATTING,
         /**
@@ -262,7 +265,8 @@ public class ComponentBuilder
          */
         EVENTS,
         /**
-         * Specify that we want to retain everything from the previous component.
+         * Specify that we want to retain everything from the previous
+         * component.
          */
         ALL
     }

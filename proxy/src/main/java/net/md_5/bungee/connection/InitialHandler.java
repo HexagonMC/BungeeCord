@@ -6,7 +6,6 @@ import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -22,7 +21,6 @@ import net.md_5.bungee.*;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.Favicon;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -42,6 +40,8 @@ import net.md_5.bungee.netty.PipelineUtils;
 import net.md_5.bungee.netty.cipher.CipherDecoder;
 import net.md_5.bungee.netty.cipher.CipherEncoder;
 import net.md_5.bungee.protocol.DefinedPacket;
+import net.md_5.bungee.protocol.PacketWrapper;
+import net.md_5.bungee.protocol.ProtocolConstants;
 import net.md_5.bungee.protocol.packet.Handshake;
 import net.md_5.bungee.protocol.packet.PluginMessage;
 import net.md_5.bungee.protocol.packet.EncryptionResponse;
@@ -52,7 +52,6 @@ import net.md_5.bungee.api.event.PlayerHandshakeEvent;
 import net.md_5.bungee.api.event.PreLoginEvent;
 import net.md_5.bungee.jni.cipher.BungeeCipher;
 import net.md_5.bungee.protocol.Protocol;
-import net.md_5.bungee.protocol.ProtocolConstants;
 import net.md_5.bungee.protocol.packet.LegacyHandshake;
 import net.md_5.bungee.protocol.packet.LegacyPing;
 import net.md_5.bungee.protocol.packet.LoginRequest;
@@ -66,7 +65,9 @@ import net.md_5.bungee.util.BoundedArrayList;
 public class InitialHandler extends PacketHandler implements PendingConnection
 {
 	private static final Pattern IPADDRESS_PATTERN = Pattern.compile("(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])");
-    private final ProxyServer bungee;
+    private final BungeeCord bungee;
+
+    private final BungeeCord bungee;
     private ChannelWrapper ch;
     @Getter
     private final ListenerInfo listener;
@@ -76,7 +77,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     private LoginRequest loginRequest;
     private EncryptionRequest request;
     @Getter
-    private final List<PluginMessage> registerMessages = new BoundedArrayList<>( 128 );
+    private final List<PluginMessage> relayMessages = new BoundedArrayList<>( 128 );
     private State thisState = State.HANDSHAKE;
     private final Unsafe unsafe = new Unsafe()
     {
@@ -106,6 +107,13 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     private boolean legacy;
     @Getter
     private String extraDataInHandshake = "";
+    private boolean disconnecting;
+
+    @Override
+    public boolean shouldHandle(PacketWrapper packet) throws Exception
+    {
+        return !disconnecting;
+    }
 
     private enum State
     {
@@ -129,9 +137,9 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     public void handle(PluginMessage pluginMessage) throws Exception
     {
         // TODO: Unregister?
-        if ( pluginMessage.getTag().equals( "REGISTER" ) )
+        if ( PluginMessage.SHOULD_RELAY.apply( pluginMessage ) )
         {
-            registerMessages.add( pluginMessage );
+            relayMessages.add( pluginMessage );
         }
     }
 
@@ -221,7 +229,6 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                     @Override
                     public void done(ProxyPingEvent pingResult, Throwable error)
                     {
-                        BungeeCord.getInstance().getConnectionThrottle().unthrottle( getAddress().getAddress() );
                         Gson gson = handshake.getProtocolVersion() == ProtocolConstants.MINECRAFT_1_7_2 ? BungeeCord.getInstance().gsonLegacy : BungeeCord.getInstance().gson;
                         unsafe.sendPacket( new StatusResponse( gson.toJson( pingResult.getResponse() ) ) );
                     }
@@ -236,7 +243,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
             ( (BungeeServerInfo) forced ).ping( pingBack, handshake.getProtocolVersion() );
         } else
         {
-            int protocol = ( Protocol.supportedVersions.contains( handshake.getProtocolVersion() ) ) ? handshake.getProtocolVersion() : bungee.getProtocolVersion();
+            int protocol = ( ProtocolConstants.SUPPORTED_VERSION_IDS.contains( handshake.getProtocolVersion() ) ) ? handshake.getProtocolVersion() : bungee.getProtocolVersion();
             pingBack.done( new ServerPing(
                     new ServerPing.Protocol( bungee.getName() + " " + bungee.getGameVersion(), protocol ),
                     new ServerPing.Players( listener.getMaxPlayers(), bungee.getOnlineCount(), null ),
@@ -337,9 +344,26 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                 ch.setProtocol( Protocol.STATUS );
                 break;
             case 2:
+                // Login
                 thisState = State.USERNAME;
                 ch.setProtocol( Protocol.LOGIN );
-                // Login
+
+                if ( !ProtocolConstants.SUPPORTED_VERSION_IDS.contains( handshake.getProtocolVersion() ) )
+                {
+                    if ( handshake.getProtocolVersion() > bungee.getProtocolVersion() )
+                    {
+                        disconnect( bungee.getTranslation( "outdated_server" ) );
+                    } else
+                    {
+                        disconnect( bungee.getTranslation( "outdated_client" ) );
+                    }
+                    return;
+                }
+
+                if ( bungee.getConnectionThrottle() != null && bungee.getConnectionThrottle().throttle( getAddress().getAddress() ) )
+                {
+                    disconnect( bungee.getTranslation( "join_throttle_kick", TimeUnit.MILLISECONDS.toSeconds( bungee.getConfig().getThrottle() ) ) );
+                }
                 break;
             default:
                 throw new IllegalArgumentException( "Cannot request protocol " + handshake.getRequestedProtocol() );
@@ -351,12 +375,6 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     {
         Preconditions.checkState( thisState == State.USERNAME, "Not expecting USERNAME" );
         this.loginRequest = loginRequest;
-
-        if ( !Protocol.supportedVersions.contains( handshake.getProtocolVersion() ) )
-        {
-            disconnect( bungee.getTranslation( "outdated_server" ) );
-            return;
-        }
 
         if ( getName().contains( "." ) )
         {
@@ -582,8 +600,9 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     @Override
     public void disconnect(final BaseComponent... reason)
     {
-        if ( !ch.isClosed() )
+        if ( !disconnecting || !ch.isClosed() )
         {
+            disconnecting = true;
             // Why do we have to delay this you might ask? Well the simple reason is MOJANG.
             // Despite many a bug report posted, ever since the 1.7 protocol rewrite, the client STILL has a race condition upon switching protocols.
             // As such, despite the protocol switch packets already having been sent, there is the possibility of a client side exception
