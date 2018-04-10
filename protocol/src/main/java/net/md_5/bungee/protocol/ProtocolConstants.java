@@ -5,6 +5,8 @@ import java.util.List;
 
 public class ProtocolConstants
 {
+    public static final int MINECRAFT_1_5_2 = 61;
+    public static final int MINECRAFT_1_6_4 = 78;
     public static final int MINECRAFT_1_7_2 = 4;
     public static final int MINECRAFT_1_7_6 = 5;
     public static final int MINECRAFT_1_8 = 47;
@@ -27,7 +29,9 @@ public class ProtocolConstants
             "1.12.x"
     );
 
-    public static final List<Integer> SUPPORTED_VERSION_IDS = Arrays.asList( 
+    public static final List<Integer> SUPPORTED_VERSION_IDS = Arrays.asList(
+            ProtocolConstants.MINECRAFT_1_5_2,
+            ProtocolConstants.MINECRAFT_1_6_4,
             ProtocolConstants.MINECRAFT_1_7_2,
             ProtocolConstants.MINECRAFT_1_7_6,
             ProtocolConstants.MINECRAFT_1_8,
