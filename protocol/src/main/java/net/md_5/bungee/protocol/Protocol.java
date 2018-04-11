@@ -67,18 +67,24 @@ public enum Protocol
             );
             TO_CLIENT.registerPacket(
                     Login.class,
+                    map(ProtocolConstants.MINECRAFT_1_5_2,0x01),
+                    map(ProtocolConstants.MINECRAFT_1_6_4,0x01),
                     map( ProtocolConstants.MINECRAFT_1_8, 0x01 ),
                     map( ProtocolConstants.MINECRAFT_1_9, 0x23 ),
                     map( ProtocolConstants.MINECRAFT_1_12, 0x23 )
             );
             TO_CLIENT.registerPacket(
                     Chat.class,
+                    map(ProtocolConstants.MINECRAFT_1_5_2,0x03),
+                    map(ProtocolConstants.MINECRAFT_1_6_4,0x03),
                     map( ProtocolConstants.MINECRAFT_1_8, 0x02 ),
                     map( ProtocolConstants.MINECRAFT_1_9, 0x0F ),
                     map( ProtocolConstants.MINECRAFT_1_12, 0x0F )
             );
             TO_CLIENT.registerPacket(
                     Respawn.class,
+                    map(ProtocolConstants.MINECRAFT_1_5_2,0x09),
+                    map(ProtocolConstants.MINECRAFT_1_6_4,0x09),
                     map( ProtocolConstants.MINECRAFT_1_8, 0x07 ),
                     map( ProtocolConstants.MINECRAFT_1_9, 0x33 ),
                     map( ProtocolConstants.MINECRAFT_1_12, 0x34 ),
