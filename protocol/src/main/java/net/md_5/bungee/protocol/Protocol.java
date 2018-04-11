@@ -59,6 +59,8 @@ public enum Protocol
         {
             TO_CLIENT.registerPacket(
                     KeepAlive.class,
+                    map( ProtocolConstants.MINECRAFT_1_5_2,0x00),
+                    map(ProtocolConstants.MINECRAFT_1_6_4,0x00),
                     map( ProtocolConstants.MINECRAFT_1_8, 0x00 ),
                     map( ProtocolConstants.MINECRAFT_1_9, 0x1F ),
                     map( ProtocolConstants.MINECRAFT_1_12, 0x1F )
