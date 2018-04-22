@@ -142,6 +142,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     public void handle(LegacyHandshake legacyHandshake) throws Exception
     {
         this.legacy = true;
+        System.out.println("Legacy");
         ch.close( bungee.getTranslation( "outdated_client", bungee.getGameVersion() ) );
     }
 
@@ -289,16 +290,20 @@ public class InitialHandler extends PacketHandler implements PendingConnection
         {
             case 1:
                 // Ping
+                System.out.println("Ping");
                 thisState = State.STATUS;
                 ch.setProtocol( Protocol.STATUS );
                 break;
             case 2:
                 // Login
+                System.out.println("Login");
                 thisState = State.USERNAME;
                 ch.setProtocol( Protocol.LOGIN );
-
+                System.out.println("Login :"+handshake.getProtocolVersion());
                 if ( !ProtocolConstants.SUPPORTED_VERSION_IDS.contains( handshake.getProtocolVersion() ) )
                 {
+                    System.out.println("!contains :"+handshake.getProtocolVersion());
+
                     if ( handshake.getProtocolVersion() > bungee.getProtocolVersion() )
                     {
                         disconnect( bungee.getTranslation( "outdated_server", bungee.getGameVersion() ) );
@@ -315,6 +320,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                 }
                 break;
             default:
+                System.out.println("default");
                 throw new IllegalArgumentException( "Cannot request protocol " + handshake.getRequestedProtocol() );
         }
     }

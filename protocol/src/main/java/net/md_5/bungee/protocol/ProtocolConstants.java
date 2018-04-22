@@ -21,8 +21,8 @@ public class ProtocolConstants
     public static final int MINECRAFT_1_12_1 = 338;
     public static final int MINECRAFT_1_12_2 = 340;
     public static final List<String> SUPPORTED_VERSIONS = Arrays.asList(
-            "1.5.2",
-            "1.6.4",
+            "1.5.x",
+            "1.6.x",
             "1.7.x",
             "1.8.x",
             "1.9.x",
