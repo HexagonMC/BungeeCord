@@ -24,6 +24,7 @@ public class Chat extends DefinedPacket
         this( message, (byte) 0 );
     }
 
+
     @Override
     public void read(ByteBuf buf, ProtocolConstants.Direction direction, int protocolVersion)
     {

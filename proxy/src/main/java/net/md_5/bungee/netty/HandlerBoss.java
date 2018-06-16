@@ -96,6 +96,8 @@ public class HandlerBoss extends ChannelInboundHandlerAdapter
             boolean sendPacket = handler.shouldHandle( packet );
             try
             {
+                System.out.println("ShouldHandle:"+sendPacket);
+                System.out.println("Packet:"+packet.packet);
                 if ( sendPacket && packet.packet != null )
                 {
                     try

@@ -236,6 +236,7 @@ public abstract class DefinedPacket
 
     public abstract void handle(AbstractPacketHandler handler) throws Exception;
 
+
     @Override
     public abstract boolean equals(Object obj);
 

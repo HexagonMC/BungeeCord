@@ -98,7 +98,6 @@ public class DownstreamBridge extends PacketHandler
     @Override
     public void handle(PacketWrapper packet) throws Exception
     {
-        con.getEntityRewrite().rewriteClientbound(packet.buf, con.getServerEntityId(), con.getClientEntityId());
         con.sendPacket(packet);
     }
     
@@ -506,11 +505,6 @@ public class DownstreamBridge extends PacketHandler
         }
     }
     
-    @Override
-    public void handle(Respawn respawn)
-    {
-        con.setDimension( respawn.getDimension() );
-    }
 
     @Override
     public String toString()
