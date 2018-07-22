@@ -1,26 +1,28 @@
 package net.md_5.bungee.connection;
 
 
+import java.io.DataInput;
+
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import java.io.DataInput;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.ServerConnection;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.event.ServerDisconnectEvent;
-import net.md_5.bungee.api.event.TabCompleteResponseEvent;
 import net.md_5.bungee.UserConnection;
 import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
+import net.md_5.bungee.api.event.ServerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
+import net.md_5.bungee.api.event.TabCompleteResponseEvent;
 import net.md_5.bungee.api.score.Objective;
 import net.md_5.bungee.api.score.Position;
 import net.md_5.bungee.api.score.Score;
@@ -31,30 +33,29 @@ import net.md_5.bungee.netty.ChannelWrapper;
 import net.md_5.bungee.netty.PacketHandler;
 import net.md_5.bungee.protocol.DefinedPacket;
 import net.md_5.bungee.protocol.PacketWrapper;
+import net.md_5.bungee.protocol.ProtocolConstants;
 import net.md_5.bungee.protocol.packet.BossBar;
 import net.md_5.bungee.protocol.packet.KeepAlive;
+import net.md_5.bungee.protocol.packet.Kick;
 import net.md_5.bungee.protocol.packet.PlayerListItem;
+import net.md_5.bungee.protocol.packet.PluginMessage;
 import net.md_5.bungee.protocol.packet.Respawn;
+import net.md_5.bungee.protocol.packet.ScoreboardDisplay;
 import net.md_5.bungee.protocol.packet.ScoreboardObjective;
 import net.md_5.bungee.protocol.packet.ScoreboardScore;
-import net.md_5.bungee.protocol.packet.ScoreboardDisplay;
-import net.md_5.bungee.protocol.packet.PluginMessage;
-import net.md_5.bungee.protocol.packet.Kick;
 import net.md_5.bungee.protocol.packet.SetCompression;
 import net.md_5.bungee.protocol.packet.TabCompleteResponse;
 import net.md_5.bungee.tab.TabList;
-
-import net.md_5.bungee.protocol.ProtocolConstants;
 
 
 @RequiredArgsConstructor
 public class DownstreamBridge extends PacketHandler
 {
-    
+
     private final ProxyServer      bungee;
     private final UserConnection   con;
     private final ServerConnection server;
-    
+
     @Override
     public void exception(Throwable t) throws Exception
     {
@@ -73,7 +74,7 @@ public class DownstreamBridge extends PacketHandler
             con.disconnect( Util.exception( t ) );
         }
     }
-    
+
     @Override
     public void disconnected(ChannelWrapper channel) throws Exception
     {
@@ -81,41 +82,41 @@ public class DownstreamBridge extends PacketHandler
         server.getInfo().removePlayer(con);
         if (bungee.getReconnectHandler() != null)
             bungee.getReconnectHandler().setServer(con);
-        
+
         if (!server.isObsolete())
             con.disconnect(bungee.getTranslation("lost_connection"));
-        
+
         ServerDisconnectEvent serverDisconnectEvent = new ServerDisconnectEvent(con, server.getInfo());
         bungee.getPluginManager().callEvent(serverDisconnectEvent);
     }
-    
+
     @Override
     public boolean shouldHandle(PacketWrapper packet) throws Exception
     {
         return !server.isObsolete();
     }
-    
+
     @Override
     public void handle(PacketWrapper packet) throws Exception
     {
         con.getEntityRewrite().rewriteClientbound(packet.buf, con.getServerEntityId(), con.getClientEntityId());
         con.sendPacket(packet);
     }
-    
+
     @Override
     public void handle(KeepAlive alive) throws Exception
     {
         server.setSentPingId( alive.getRandomId() );
         con.setSentPingTime( System.currentTimeMillis() );
     }
-    
+
     @Override
     public void handle(PlayerListItem playerList) throws Exception
     {
         con.getTabListHandler().onUpdate(TabList.rewrite(playerList));
         throw CancelSendSignal.INSTANCE; // Always throw because of profile rewriting
     }
-    
+
     @Override
     public void handle(ScoreboardObjective objective) throws Exception
     {
@@ -123,7 +124,7 @@ public class DownstreamBridge extends PacketHandler
         switch (objective.getAction())
         {
             case 0:
-                serverScoreboard.addObjective(new Objective(objective.getName(), objective.getValue(), objective.getType()));
+                serverScoreboard.addObjective(new Objective(objective.getName(), objective.getValue(), objective.getType().toString()));
                 break;
             case 1:
                 serverScoreboard.removeObjective(objective.getName());
@@ -133,14 +134,14 @@ public class DownstreamBridge extends PacketHandler
                 if ( oldObjective != null )
                 {
                     oldObjective.setValue( objective.getValue() );
-                    oldObjective.setType( objective.getType() );
+                    oldObjective.setType( objective.getType().toString() );
                 }
                 break;
             default:
                 throw new IllegalArgumentException("Unknown objective action: " + objective.getAction());
         }
     }
-    
+
     @Override
     public void handle(ScoreboardScore score) throws Exception
     {
@@ -159,7 +160,7 @@ public class DownstreamBridge extends PacketHandler
                 throw new IllegalArgumentException("Unknown scoreboard action: " + score.getAction());
         }
     }
-    
+
     @Override
     public void handle(ScoreboardDisplay displayScoreboard) throws Exception
     {
@@ -167,7 +168,7 @@ public class DownstreamBridge extends PacketHandler
         serverScoreboard.setName(displayScoreboard.getName());
         serverScoreboard.setPosition(Position.values()[displayScoreboard.getPosition()]);
     }
-    
+
     @Override
     public void handle(net.md_5.bungee.protocol.packet.Team team) throws Exception
     {
@@ -178,7 +179,7 @@ public class DownstreamBridge extends PacketHandler
             serverScoreboard.removeTeam(team.getName());
             return;
         }
-        
+
         // Create or get old team
         Team t;
         if (team.getMode() == 0)
@@ -188,7 +189,7 @@ public class DownstreamBridge extends PacketHandler
         }
         else
             t = serverScoreboard.getTeam(team.getName());
-        
+
         if ( t != null )
         {
             if ( team.getMode() == 0 || team.getMode() == 2 )
@@ -216,7 +217,7 @@ public class DownstreamBridge extends PacketHandler
             }
         }
     }
-    
+
     @Override
     public void handle(PluginMessage pluginMessage) throws Exception
     {
@@ -227,8 +228,8 @@ public class DownstreamBridge extends PacketHandler
         {
             throw CancelSendSignal.INSTANCE;
         }
-        
-        if (pluginMessage.getTag().equals("MC|Brand"))
+
+        if ( pluginMessage.getTag().equals( con.getPendingConnection().getVersion() >= ProtocolConstants.MINECRAFT_1_13 ? "minecraft:brand" : "MC|Brand" ) )
         {
             if (con.getPendingConnection().getVersion() >= ProtocolConstants.MINECRAFT_1_8)
             {
@@ -255,12 +256,12 @@ public class DownstreamBridge extends PacketHandler
             con.unsafe().sendPacket(pluginMessage);
             throw CancelSendSignal.INSTANCE;
         }
-        
+
         if (pluginMessage.getTag().equals("BungeeCord"))
         {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
             String subChannel = in.readUTF();
-            
+
             if (subChannel.equals("ForwardToPlayer"))
             {
                 ProxiedPlayer target = bungee.getPlayer(in.readUTF());
@@ -271,16 +272,16 @@ public class DownstreamBridge extends PacketHandler
                     short len = in.readShort();
                     byte[] data = new byte[len];
                     in.readFully(data);
-                    
+
                     // Prepare new data to send
                     out.writeUTF(channel);
                     out.writeShort(data.length);
                     out.write(data);
                     byte[] payload = out.toByteArray();
-                    
+
                     target.getServer().sendData("BungeeCord", payload);
                 }
-                
+
                 // Null out stream, important as we don't want to send to ourselves
                 out = null;
             }
@@ -292,16 +293,16 @@ public class DownstreamBridge extends PacketHandler
                 short len = in.readShort();
                 byte[] data = new byte[len];
                 in.readFully(data);
-                
+
                 // Prepare new data to send
                 out.writeUTF(channel);
                 out.writeShort(data.length);
                 out.write(data);
                 byte[] payload = out.toByteArray();
-                
+
                 // Null out stream, important as we don't want to send to ourselves
                 out = null;
-                
+
                 if (target.equals("ALL"))
                 {
                     for ( ServerInfo server : bungee.getServers().values() )
@@ -440,7 +441,7 @@ public class DownstreamBridge extends PacketHandler
                     player.disconnect(new TextComponent(kickReason));
                 }
             }
-            
+
             // Check we haven't set out to null, and we have written data, if so reply back back along the BungeeCord channel
             if (out != null)
             {
@@ -450,11 +451,11 @@ public class DownstreamBridge extends PacketHandler
                     server.sendData( "BungeeCord", b );
                 }
             }
-            
+
             throw CancelSendSignal.INSTANCE;
         }
     }
-    
+
     @Override
     public void handle(Kick kick) throws Exception
     {
@@ -470,16 +471,22 @@ public class DownstreamBridge extends PacketHandler
         server.setObsolete( true );
         throw CancelSendSignal.INSTANCE;
     }
-    
+
     @Override
     public void handle(SetCompression setCompression) throws Exception
     {
         server.getCh().setCompressionThreshold(setCompression.getThreshold());
     }
-    
+
     @Override
     public void handle(TabCompleteResponse tabCompleteResponse) throws Exception
     {
+        if ( tabCompleteResponse.getCommands() == null )
+        {
+            // Passthrough on 1.13 style command responses - unclear of a sane way to process them at the moment, contributions welcome
+            return;
+        }
+
         TabCompleteResponseEvent tabCompleteResponseEvent = new TabCompleteResponseEvent( server, con, tabCompleteResponse.getCommands() );
 
         if ( !bungee.getPluginManager().callEvent( tabCompleteResponseEvent ).isCancelled() )
@@ -489,7 +496,7 @@ public class DownstreamBridge extends PacketHandler
 
         throw CancelSendSignal.INSTANCE;
     }
-    
+
     @Override
     public void handle(BossBar bossBar)
     {
@@ -505,7 +512,7 @@ public class DownstreamBridge extends PacketHandler
                 break;
         }
     }
-    
+
     @Override
     public void handle(Respawn respawn)
     {
