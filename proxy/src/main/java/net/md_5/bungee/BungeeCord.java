@@ -1,24 +1,5 @@
 package net.md_5.bungee;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelException;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.util.ResourceLeakDetector;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -44,6 +25,28 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.fusesource.jansi.AnsiConsole;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelException;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.util.ResourceLeakDetector;
 import jline.console.ConsoleReader;
 import lombok.Getter;
 import lombok.Setter;
@@ -94,7 +97,6 @@ import net.md_5.bungee.protocol.packet.PluginMessage;
 import net.md_5.bungee.query.RemoteQuery;
 import net.md_5.bungee.scheduler.BungeeScheduler;
 import net.md_5.bungee.util.CaseInsensitiveMap;
-import org.fusesource.jansi.AnsiConsole;
 
 /**
  * Main BungeeCord proxy class.
@@ -176,7 +178,7 @@ public class BungeeCord extends ProxyServer
     private ConnectionThrottle connectionThrottle;
     private final ModuleManager moduleManager = new ModuleManager();
 
-    
+
     {
         // TODO: Proper fallback when we interface the manager
         getPluginManager().registerCommand( null, new CommandReload() );
@@ -282,7 +284,7 @@ public class BungeeCord extends ProxyServer
             registerChannel( ForgeConstants.FML_TAG );
             registerChannel( ForgeConstants.FML_HANDSHAKE_TAG );
             registerChannel( ForgeConstants.FORGE_REGISTER );
-            
+
             getLogger().warning( "MinecraftForge support is currently unmaintained and may have unresolved issues. Please use at your own risk." );
         }
 
@@ -621,8 +623,13 @@ public class BungeeCord extends ProxyServer
         return Collections.unmodifiableCollection( pluginChannels );
     }
 
-    public PluginMessage registerChannels()
+    public PluginMessage registerChannels(int protocolVersion)
     {
+        if ( protocolVersion >= ProtocolConstants.MINECRAFT_1_13 )
+        {
+            return new PluginMessage( "minecraft:register", Util.format( Iterables.transform( pluginChannels, PluginMessage.MODERNISE ), "\00" ).getBytes( Charsets.UTF_8 ), false );
+        }
+
         return new PluginMessage( "REGISTER", Util.format( pluginChannels, "\00" ).getBytes( Charsets.UTF_8 ), false );
     }
 

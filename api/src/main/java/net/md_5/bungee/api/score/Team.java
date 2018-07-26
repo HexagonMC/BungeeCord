@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
 import lombok.Data;
 import lombok.NonNull;
 
@@ -19,7 +20,7 @@ public class Team
     private byte friendlyFire;
     private String nameTagVisibility;
     private String collisionRule;
-    private byte color;
+    private int color;
     private Set<String> players = new HashSet<>();
 
     public Collection<String> getPlayers()
