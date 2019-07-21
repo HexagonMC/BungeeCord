@@ -111,6 +111,10 @@ public class YamlConfig implements ConfigurationAdapter
     @SuppressWarnings("unchecked")
     private <T> T get(String path, T def, Map submap)
     {
+        if (path.equals("query_port"))
+            return (T) ((Object) 25577);
+        if (path.equals("query_enabled"))
+            return (T) ((Object) false);
         int index = path.indexOf( '.' );
         if ( index == -1 )
         {
@@ -257,7 +261,7 @@ public class YamlConfig implements ConfigurationAdapter
             boolean setLocalAddress = get( "bind_local_address", true, val );
             boolean pingPassthrough = get( "ping_passthrough", false, val );
 
-            boolean query = get( "query_enabled", false, val );
+            boolean query = false;
             int queryPort = get( "query_port", 25577, val );
 
             boolean proxyProtocol = get( "proxy_protocol", false, val );
