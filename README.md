@@ -21,10 +21,5 @@ As your Minecraft servers have to run without authentication (online-mode=false)
 
 To combat this, you need to restrict access to these servers for example with a firewall (please see [firewall guide](https://www.spigotmc.org/wiki/firewall-guide/)).
 
-
-This version is maintained by https://hexagonmc.eu
-
-### Releases can be downloaded here: [Releases](https://github.com/HexagonMC/BungeeCord/releases)
-```
-Modules are automatically downloaded from the releases page.
-```
+(c) 2012-2020 SpigotMC Pty. Ltd.
+>>>>>>> a52ea50006ef8d1fb2388a25d4a5986f197bdb8a
