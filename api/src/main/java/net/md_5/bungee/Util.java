@@ -128,4 +128,15 @@ public class Util
     {
         return new UUID( UnsignedLongs.parseUnsignedLong( uuid.substring( 0, 16 ), 16 ), UnsignedLongs.parseUnsignedLong( uuid.substring( 16 ), 16 ) );
     }
+    
+    /**
+     * Get player's name
+     *
+     * @param Player name
+     * @return The result
+     */
+    public static void getName(ProxiedPlayer player)
+    {
+        player.getName();
+    }
 }
