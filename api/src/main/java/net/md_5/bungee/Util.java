@@ -18,12 +18,6 @@ public class Util
 
     public static final int DEFAULT_PORT = 25565;
 
-    /**
-     * Method to transform human readable addresses into usable address objects.
-     *
-     * @param hostline in the format of 'host:port'
-     * @return the constructed hostname + port.
-     */
     public static SocketAddress getAddr(String hostline)
     {
         URI uri = null;
